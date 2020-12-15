@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset = "utf-8"/>
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no"/>
+        <title>Final Map Proposal</title>
+        <style>
+            html,
+            body{
+                width:100%;
+                height: 100%;
+                background-color: cornsilk;
+            }
+            #maps{
+                height: 100%;
+                width: 79.5%;
+                float: right;
+            }
+            
+            #viewDiv {
+                padding; 2px;
+                    float: left;
+                    left: 0;
+                margin: 0;
+                height: 100%;
+                width: 55.5%;
+            }
+            
+            #viewDiv2 {
+                float: right;
+                right: 0;
+                padding: 1px;
+                margin: 0;
+                height: 49.5%;
+                width: 43.5%;
+            }
+            #viewDiv3 {
+                float: right;
+                right: 0;
+                padding: 1px;
+                margin: 0;
+                height: 49.5%;
+                width: 43.5%;
+            }
+            #header {
+                width: 100%;
+                background-color:burlywood;
+                height: 10%;
+                text-align: center;
+                color: white;
+            }
+            
+            #view1title{
+                padding:1px;
+                width:25%;
+                background-color: lightcoral;
+                position: relative;
+                left:12.5%;
+                top: 0;
+                height: 7%;
+                text-align: center;
+                color: white;
+            }
+            
+            #legendDiv{
+                padding: 1px;
+                float: left;
+                width: 20.5%;
+                height: 100%;
+                background-color: cornsilk
+            }
+        </style>
+        
+        <link rel="stylesheet" href="https://js.arcgis.com/4.17/esri/themes/light/main.css"/>
+        
+        <script src="https://js.arcgis.com/4.17/"></script> 
+        
+        <script>
+        require(["esri/Map",
+                 "esri/views/MapView",
+                 "esri/Basemap",
+                 "esri/layers/VectorTileLayer",
+                 "esri/layers/FeatureLayer",
+                 "esri/symbols/SimpleFillSymbol",
+                 "esri/renderers/SimpleRenderer",
+                 "esri/symbols/SimpleLineSymbol",
+                 "esri/core/watchUtils",
+                 "esri/widgets/Expand",
+                 "esri/widgets/Search",
+                 "esri/widgets/LayerList",
+                 "dojo/dom",
+                 "dojo/promise/all",
+                 "dojo/domReady!"
+                ], function(Map, MapView, Basemap, VectorTileLayer, FeatureLayer, SimpleFillSymbol, SimpleRenderer, SimpleLineSymbol, watchUtils, Expand, Search, LayerList, dom,all) {
+            
+        var mybasemap = new Basemap({
+            baseLayers: [
+                new VectorTileLayer({
+                    portalItem: {
+                        id: "06b4d740e8dd4adda11237938e20dfeb"
+                    }
+                })
+            ]
+        });
+            
+        var mymap = new Map({
+            basemap: mybasemap
+        });
+            
+        var view = new MapView({
+            container: "viewDiv", 
+            map: mymap, 
+            zoom: 6,
+            center: [-82.673555,40.172547],
+            });
+            
+        var infection = new FeatureLayer({
+            portalItem:{
+                id:"275940f8e5874716baae1b1b27eaf69f",
+                opacity: 0.7,
+                
+            }
+        });
+            mymap.add(infection);
+            
+            
+        var mymap2 = new Map({
+            basemap: mybasemap
+        });
+            
+        var view2 = new MapView({
+            container: "viewDiv2", 
+            map: mymap2, 
+            zoom: 5,
+            center: [-82.673555,40.172547] 
+            });
+            
+            
+        var unemploy = new FeatureLayer({
+            portalItem:{
+                id:"3eaa382d6f984dac97e27676a42271e8",
+            }
+        });
+            mymap2.add(unemploy);
+            
+            
+    
+        var mymap3 = new Map({
+            basemap: mybasemap
+        });
+            
+        var view3 = new MapView({
+            container: "viewDiv3", 
+            map: mymap3, 
+            zoom: 5,
+            center: [-82.673555,40.172547]
+            });
+            
+        var popden = new FeatureLayer({
+            portalItem:{
+                id:"1070304c841a42329d8917b25ca75fed"
+            }
+        });
+        mymap3.add(popden);
+        
+            var searchWidget= new Search({
+                    view: view
+                });
+                
+                view.ui.add(searchWidget, {
+                    position:"top-left",
+                    index: -2
+                });
+        
+        var legend1 = new LayerList({
+           container: "legendDiv",
+           view: view,
+           listItemCreatedFunction: function(event){
+               var item = event.item;
+               if(item.layer.type !="group"){
+                   item.panel = {
+                       content: "legend",
+                       open: true
+                   };
+               }
+           }
+       });
+            
+        var legend2 = new LayerList({
+           container: "legendDiv",
+           view: view2,
+           listItemCreatedFunction: function(event){
+               var item = event.item;
+               if(item.layer.type !="group"){
+                   item.panel = {
+                       content: "legend",
+                       open: true
+                   };
+               }
+           }
+       });
+            
+        var legend3 = new LayerList({
+           container: "legendDiv",
+           view: view3,
+           listItemCreatedFunction: function(event){
+               var item = event.item;
+               if(item.layer.type !="group"){
+                   item.panel = {
+                       content: "legend",
+                       open: true
+                   };
+               }
+           }
+       });
+        
+         var synchronizeView = function(view, others){
+                others=Array.isArray(others)?others:[others];
+                var viewpointWatchHandle;
+                var viewStationaryHandle;
+                var otherInteractHandlers;
+                var scheduleId;
+                
+                var clear=function(){
+                    if (otherInteractHandlers){
+                        otherInteractHandlers.forEach(function(handle){
+                            handle.remove();
+                        });
+                    }
+                    
+                    viewpointWatchHandle && viewpointWatchHandle.remove();
+                    viewStationaryHandle && viewStationaryHandle.remove();
+                    scheduleId && clearTimeout(scheduleID);
+                    otherInteractHandlers = viewpointWatchHandle=viewStationaryHandle=scheduleId=null;
+                };
+                
+                var interactWatcher= view.watch('interacting, animation', function(newValue){
+                    if(!newValue){
+                        return;
+                    }
+                    if(viewpointWatchHandle || scheduleId){
+                        return;
+                    }
+                    scheduleId=setTimeout(function(){
+                        scheduleId=null;
+                        
+                        viewpointWatchHandle=view.watch('viewpoint',function(newValue){
+                            others.forEach(function(otherView){
+                                otherView.viewpoint=newValue;
+                            });
+                        });
+                    },0);
+                    otherInteractHandlers= others.map(function(otherView){
+                        return watchUtils.watch(otherView,
+                                               'interacting, animation',
+                                               function(
+                                               value){
+                                            if(value){
+                                                clear();
+                                            }
+                        });
+                    });
+                    viewStationaryHandle = watchUtils.whenTrue(view,'stationary',clear);
+                });
+                return{
+                    remove: function() {
+                        this.remove = function() {};
+                        clear();
+                        interactWatcher.remove();
+                    }
+                }
+            };
+            
+            var synchronizeViews = function(views){
+                var handles = views.map(function(view,idx,views){
+                    var others = views.concat();
+                    others.splice(idx, 1);
+                    return synchronizeView(view,others);
+                });
+                return {
+                    remove: function(){
+                        this.remove = function(){};
+                        handles.forEach(function(h){
+                            h.remove();
+                        });
+                        handles = null;
+                    }
+                }
+            }
+            
+            synchronizeViews([view,view2,view3]);
+            
+        });
+        </script>
+    </head>
+    
+    <body>
+        <div id ="header"; style="display: table; height: 15px; overflow: hidden;"><h1 style="vertical-align: middle">The Effects of the Corona Virus in Ohio</h1></div>
+    <div id = "legendDiv"></div>
+        
+       <div id = "maps">
+        <div id = "viewDiv"></div>
+        <div id = "viewDiv2"></div>
+        <div id = "viewDiv3"></div>
+        </div>
+    </body>
+</html>
